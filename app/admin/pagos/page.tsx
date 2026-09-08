@@ -73,8 +73,26 @@ export default function AdminPagosPage() {
     setGuardando(false)
   }
 
-  const marcarComoPagado = async (id: string) => {
+    const marcarComoPagado = async (id: string) => {
     await supabase.from('pagos').update({ estatus: 'pagado', fecha_pago: new Date().toISOString() }).eq('id', id)
+
+    const pago = pagos.find((p) => p.id === id)
+    if (pago) {
+      await fetch('/api/generar-comprobante', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pagoId: pago.id,
+          alumnoId: pago.alumno_id,
+          nombreCompleto: `${pago.alumnos?.nombre} ${pago.alumnos?.apellido_paterno}`,
+          matricula: pago.alumnos?.matricula,
+          concepto: pago.concepto,
+          monto: pago.monto,
+          folio: `PAG-${pago.id.slice(0, 8)}`,
+        }),
+      })
+    }
+
     cargar()
   }
 

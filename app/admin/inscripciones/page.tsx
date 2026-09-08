@@ -23,12 +23,52 @@ export default function AdminInscripcionesPage() {
     cargar()
   }, [])
 
-  const actualizarEstatus = async (id: string, nuevoEstatus: string, alumnoId: string, semestre: number) => {
+  const verFicha = async (rutaArchivo: string) => {
+    const { data, error } = await supabase.storage
+      .from('comprobantes')
+      .createSignedUrl(rutaArchivo, 60) // enlace válido por 60 segundos
+
+    if (error || !data) {
+      alert('No se pudo abrir la ficha de depósito.')
+      return
+    }
+
+    window.open(data.signedUrl, '_blank')
+  }
+
+    const actualizarEstatus = async (id: string, nuevoEstatus: string, alumnoId: string, semestre: number, concepto: string, monto: number, nombreCompleto: string, matricula: string, folio: string) => {
     await supabase.from('inscripciones').update({ estatus: nuevoEstatus }).eq('id', id)
 
-    // Si se confirma, actualizamos también el semestre actual del alumno
     if (nuevoEstatus === 'confirmada') {
       await supabase.from('alumnos').update({ semestre }).eq('id', alumnoId)
+
+      const { data: pagoInsertado, error } = await supabase
+        .from('pagos')
+        .insert({
+          alumno_id: alumnoId,
+          concepto,
+          monto,
+          estatus: 'pagado',
+          fecha_pago: new Date().toISOString(),
+        })
+        .select()
+        .single()
+
+      if (!error && pagoInsertado) {
+        await fetch('/api/generar-comprobante', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pagoId: pagoInsertado.id,
+            alumnoId,
+            nombreCompleto,
+            matricula,
+            concepto,
+            monto,
+            folio,
+          }),
+        })
+      }
     }
 
     cargar()
@@ -51,33 +91,43 @@ export default function AdminInscripcionesPage() {
         <table className="w-full text-left">
           <thead className="bg-gray-50">
             <tr>
+              <th className="p-3">Folio</th>
               <th className="p-3">Alumno</th>
-              <th className="p-3">Ciclo escolar</th>
-              <th className="p-3">Semestre</th>
+              <th className="p-3">Ciclo / Semestre</th>
+              <th className="p-3">Monto</th>
+              <th className="p-3">Referencia</th>
+              <th className="p-3">Ficha</th>
               <th className="p-3">Estatus</th>
-              <th className="p-3">Fecha</th>
               <th className="p-3">Acción</th>
             </tr>
           </thead>
           <tbody>
             {inscripciones.map((i) => (
               <tr key={i.id} className="border-t">
+                <td className="p-3 text-xs">{i.folio || '-'}</td>
                 <td className="p-3">{i.alumnos?.matricula} - {i.alumnos?.nombre} {i.alumnos?.apellido_paterno}</td>
-                <td className="p-3">{i.ciclo_escolar}</td>
-                <td className="p-3">{i.semestre}</td>
+                <td className="p-3">{i.ciclo_escolar} / {i.semestre}</td>
+                <td className="p-3">{i.monto ? `$${Number(i.monto).toFixed(2)}` : '-'}</td>
+                <td className="p-3 text-xs">{i.numero_referencia || '-'}</td>
+                <td className="p-3">
+                  {i.ficha_deposito_url ? (
+                    <button onClick={() => verFicha(i.ficha_deposito_url)} className="text-blue-600 hover:underline text-sm">
+                      Ver ficha
+                    </button>
+                  ) : '-'}
+                </td>
                 <td className={`p-3 font-medium ${colorEstatus(i.estatus)}`}>{i.estatus}</td>
-                <td className="p-3">{new Date(i.fecha_inscripcion).toLocaleDateString('es-MX')}</td>
                 <td className="p-3 space-x-3">
                   {i.estatus === 'pendiente' && (
                     <>
-                      <button
-                        onClick={() => actualizarEstatus(i.id, 'confirmada', i.alumno_id, i.semestre)}
+                                            <button
+                        onClick={() => actualizarEstatus(i.id, 'confirmada', i.alumno_id, i.semestre, `Inscripción ${i.ciclo_escolar}`, i.monto, `${i.alumnos?.nombre} ${i.alumnos?.apellido_paterno}`, i.alumnos?.matricula, i.folio)}
                         className="text-green-600 hover:underline text-sm"
                       >
                         Confirmar
                       </button>
                       <button
-                        onClick={() => actualizarEstatus(i.id, 'cancelada', i.alumno_id, i.semestre)}
+                        onClick={() => actualizarEstatus(i.id, 'cancelada', i.alumno_id, i.semestre, '', 0, '', '', '')}
                         className="text-red-600 hover:underline text-sm"
                       >
                         Cancelar

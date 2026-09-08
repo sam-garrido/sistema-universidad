@@ -17,6 +17,7 @@ export default function AdminRecursosPage() {
     autor: '',
     materia: '',
     carrera: '',
+    semestre: 1,
   })
 
   const supabase = createClient()
@@ -70,6 +71,7 @@ export default function AdminRecursosPage() {
       autor: form.autor,
       materia: form.materia,
       carrera: form.carrera,
+      semestre: Number(form.semestre),
       archivo_url: urlData.publicUrl,
     })
 
@@ -77,7 +79,7 @@ export default function AdminRecursosPage() {
       setMensaje(`Error al registrar: ${insertError.message}`)
     } else {
       setMensaje('Recurso subido correctamente.')
-      setForm({ titulo: '', autor: '', materia: '', carrera: '' })
+      setForm({ titulo: '', autor: '', materia: '', carrera: '', semestre: 1 })
       setArchivo(null)
       setMostrarForm(false)
       cargar()
@@ -132,6 +134,12 @@ export default function AdminRecursosPage() {
               onChange={(e) => actualizarCampo('carrera', e.target.value)}
               className="w-full border rounded px-3 py-2" />
           </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Semestre</label>
+            <input type="number" min={1} required value={form.semestre}
+              onChange={(e) => setForm({ ...form, semestre: Number(e.target.value) })}
+              className="w-full border rounded px-3 py-2" />
+          </div>
           <div className="col-span-2">
             <label className="block text-sm font-medium mb-1">Archivo PDF</label>
             <input type="file" accept="application/pdf" required
@@ -153,7 +161,8 @@ export default function AdminRecursosPage() {
           <div key={r.id} className="bg-white rounded-lg shadow p-4">
             <h2 className="font-bold text-gray-800">{r.titulo}</h2>
             <p className="text-sm text-gray-500">{r.autor}</p>
-            <p className="text-sm text-gray-500 mb-3">{r.materia}</p>
+            <p className="text-sm text-gray-500">{r.materia}</p>
+            <p className="text-xs text-gray-400 mb-3">Semestre {r.semestre}</p>
             <div className="flex justify-between items-center">
               <a href={r.archivo_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
                 Ver PDF

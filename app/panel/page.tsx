@@ -40,9 +40,9 @@ export default function PanelPage() {
 
   if (loading) return <p className="p-8">Cargando...</p>
 
-  const accesos = [
+    const accesos = [
     { nombre: 'Horario de Clases', href: '/panel/horario', color: 'text-green-600' },
-    { nombre: 'Adeudos', href: '/panel/adeudos', color: 'text-red-500' },
+    { nombre: 'Calificaciones', href: '/panel/calificaciones', color: 'text-red-500' },
     { nombre: 'Pagos', href: '/panel/pagos', color: 'text-orange-500' },
     { nombre: 'Inscripciones', href: '/panel/inscripciones', color: 'text-purple-600' },
     { nombre: 'Recursos Bibliográficos', href: '/panel/recursos', color: 'text-blue-600' },

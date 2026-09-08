@@ -44,11 +44,12 @@ export default function AdminPage() {
 
   if (loading) return <p className="p-8">Cargando...</p>
 
-  const secciones = [
+    const secciones = [
     { nombre: 'Alumnos', href: '/admin/alumnos' },
     { nombre: 'Pagos', href: '/admin/pagos' },
     { nombre: 'Horarios', href: '/admin/horarios' },
     { nombre: 'Inscripciones', href: '/admin/inscripciones' },
+    { nombre: 'Calificaciones', href: '/admin/calificaciones' },
     { nombre: 'Recursos Bibliográficos', href: '/admin/recursos' },
   ]
 

@@ -10,11 +10,21 @@ export default function RecursosPage() {
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
-  useEffect(() => {
+    useEffect(() => {
     const cargar = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: alumno } = await supabase
+        .from('alumnos')
+        .select('semestre')
+        .eq('id', user.id)
+        .single()
+
       const { data } = await supabase
         .from('recursos_bibliograficos')
         .select('*')
+        .eq('semestre', alumno?.semestre)
         .order('created_at', { ascending: false })
 
       setRecursos(data || [])

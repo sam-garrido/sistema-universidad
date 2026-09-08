@@ -27,6 +27,18 @@ export default function PagosPage() {
 
     cargar()
   }, [])
+    const descargarComprobante = async (ruta: string) => {
+    const { data, error } = await supabase.storage
+      .from('comprobantes')
+      .createSignedUrl(ruta, 60)
+
+    if (error || !data) {
+      alert('No se pudo abrir el comprobante.')
+      return
+    }
+
+    window.open(data.signedUrl, '_blank')
+  }
 
   if (loading) return <p className="p-8">Cargando...</p>
 
@@ -54,11 +66,14 @@ export default function PagosPage() {
                   <td className="p-3">{p.concepto}</td>
                   <td className="p-3">${Number(p.monto).toFixed(2)}</td>
                   <td className="p-3">{new Date(p.fecha_pago).toLocaleDateString('es-MX')}</td>
-                  <td className="p-3">
+                                    <td className="p-3">
                     {p.comprobante_url ? (
-                      <a href={p.comprobante_url} target="_blank" className="text-blue-600 hover:underline">
+                      <button
+                        onClick={() => descargarComprobante(p.comprobante_url)}
+                        className="text-blue-600 hover:underline"
+                      >
                         Ver / Descargar
-                      </a>
+                      </button>
                     ) : (
                       <span className="text-gray-400">No disponible</span>
                     )}
