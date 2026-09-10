@@ -47,16 +47,20 @@ export default function AdminPage() {
     const secciones = [
     { nombre: 'Alumnos', href: '/admin/alumnos' },
     { nombre: 'Pagos', href: '/admin/pagos' },
-    { nombre: 'Horarios', href: '/admin/horarios' },
     { nombre: 'Inscripciones', href: '/admin/inscripciones' },
     { nombre: 'Calificaciones', href: '/admin/calificaciones' },
     { nombre: 'Recursos Bibliográficos', href: '/admin/recursos' },
+    { nombre: 'Horarios (Imagen)', href: '/admin/horarios-imagen' },
+    { nombre: 'Catálogos (Materias/Carreras)', href: '/admin/catalogos' },
   ]
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="flex justify-between items-center bg-gray-800 text-white px-8 py-4">
-        <h1 className="text-xl font-bold">Panel de Administración</h1>
+            <header className="flex justify-between items-center bg-gray-800 text-white px-8 py-4">
+        <div className="flex items-center gap-3">
+          <img src="/logo.jpg" alt="Logo" className="h-22 w-auto" />
+          <h1 className="text-xl font-bold">Panel de Administración</h1>
+        </div>
         <div className="flex items-center gap-6">
           <span>{admin?.nombre}</span>
           <button onClick={cerrarSesion} className="text-red-400 hover:underline">

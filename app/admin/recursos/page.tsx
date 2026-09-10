@@ -6,19 +6,24 @@ import { createClient } from '@/lib/supabase'
 
 export default function AdminRecursosPage() {
   const [recursos, setRecursos] = useState<any[]>([])
+  const [materias, setMaterias] = useState<any[]>([])
+  const [carreras, setCarreras] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [mostrarForm, setMostrarForm] = useState(false)
+  const [editandoId, setEditandoId] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState('')
   const [archivo, setArchivo] = useState<File | null>(null)
 
-  const [form, setForm] = useState({
+  const formVacio = {
     titulo: '',
     autor: '',
     materia: '',
     carrera: '',
     semestre: 1,
-  })
+  }
+
+  const [form, setForm] = useState(formVacio)
 
   const supabase = createClient()
 
@@ -28,7 +33,12 @@ export default function AdminRecursosPage() {
       .select('*')
       .order('created_at', { ascending: false })
 
+    const { data: materiasData } = await supabase.from('materias').select('*').order('semestre')
+    const { data: carrerasData } = await supabase.from('carreras').select('*').order('nombre')
+
     setRecursos(data || [])
+    setMaterias(materiasData || [])
+    setCarreras(carrerasData || [])
     setLoading(false)
   }
 
@@ -40,9 +50,32 @@ export default function AdminRecursosPage() {
     setForm({ ...form, [campo]: valor })
   }
 
-  const subirRecurso = async (e: React.FormEvent) => {
+  const abrirNuevo = () => {
+    setEditandoId(null)
+    setForm(formVacio)
+    setArchivo(null)
+    setMensaje('')
+    setMostrarForm(true)
+  }
+
+  const abrirEditar = (r: any) => {
+    setEditandoId(r.id)
+    setForm({
+      titulo: r.titulo,
+      autor: r.autor || '',
+      materia: r.materia || '',
+      carrera: r.carrera || '',
+      semestre: r.semestre || 1,
+    })
+    setArchivo(null)
+    setMensaje('')
+    setMostrarForm(true)
+  }
+
+  const guardarRecurso = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!archivo) {
+
+    if (!editandoId && !archivo) {
       setMensaje('Selecciona un archivo PDF.')
       return
     }
@@ -50,38 +83,49 @@ export default function AdminRecursosPage() {
     setGuardando(true)
     setMensaje('')
 
-    // 1. Subir el archivo al bucket "recursos"
-    const nombreArchivo = `${Date.now()}-${archivo.name}`
-    const { error: uploadError } = await supabase.storage
-      .from('recursos')
-      .upload(nombreArchivo, archivo)
+    let archivoUrl: string | undefined
 
-    if (uploadError) {
-      setMensaje(`Error al subir el archivo: ${uploadError.message}`)
-      setGuardando(false)
-      return
+    // Si se seleccionó un archivo nuevo (alta, o reemplazo en edición), lo subimos
+    if (archivo) {
+      const nombreArchivo = `${Date.now()}-${archivo.name}`
+      const { error: uploadError } = await supabase.storage
+        .from('recursos')
+        .upload(nombreArchivo, archivo)
+
+      if (uploadError) {
+        setMensaje(`Error al subir el archivo: ${uploadError.message}`)
+        setGuardando(false)
+        return
+      }
+
+      const { data: urlData } = supabase.storage.from('recursos').getPublicUrl(nombreArchivo)
+      archivoUrl = urlData.publicUrl
     }
 
-    // 2. Obtener la URL pública del archivo
-    const { data: urlData } = supabase.storage.from('recursos').getPublicUrl(nombreArchivo)
-
-    // 3. Registrar el recurso en la base de datos
-    const { error: insertError } = await supabase.from('recursos_bibliograficos').insert({
+    const payload: any = {
       titulo: form.titulo,
       autor: form.autor,
       materia: form.materia,
       carrera: form.carrera,
       semestre: Number(form.semestre),
-      archivo_url: urlData.publicUrl,
-    })
+    }
+    if (archivoUrl) payload.archivo_url = archivoUrl
 
-    if (insertError) {
-      setMensaje(`Error al registrar: ${insertError.message}`)
+    let error
+    if (editandoId) {
+      ;({ error } = await supabase.from('recursos_bibliograficos').update(payload).eq('id', editandoId))
     } else {
-      setMensaje('Recurso subido correctamente.')
-      setForm({ titulo: '', autor: '', materia: '', carrera: '', semestre: 1 })
+      ;({ error } = await supabase.from('recursos_bibliograficos').insert(payload))
+    }
+
+    if (error) {
+      setMensaje(`Error al registrar: ${error.message}`)
+    } else {
+      setMensaje(editandoId ? 'Recurso actualizado correctamente.' : 'Recurso subido correctamente.')
+      setForm(formVacio)
       setArchivo(null)
       setMostrarForm(false)
+      setEditandoId(null)
       cargar()
     }
 
@@ -89,6 +133,8 @@ export default function AdminRecursosPage() {
   }
 
   const eliminarRecurso = async (id: string) => {
+    const confirmar = confirm('¿Eliminar este recurso bibliográfico?')
+    if (!confirmar) return
     await supabase.from('recursos_bibliograficos').delete().eq('id', id)
     cargar()
   }
@@ -101,7 +147,7 @@ export default function AdminRecursosPage() {
       <div className="flex justify-between items-center my-4">
         <h1 className="text-2xl font-bold">Recursos Bibliográficos</h1>
         <button
-          onClick={() => setMostrarForm(!mostrarForm)}
+          onClick={mostrarForm ? () => setMostrarForm(false) : abrirNuevo}
           className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800"
         >
           {mostrarForm ? 'Cancelar' : '+ Subir recurso'}
@@ -109,7 +155,11 @@ export default function AdminRecursosPage() {
       </div>
 
       {mostrarForm && (
-        <form onSubmit={subirRecurso} className="bg-white rounded-lg shadow p-6 mb-6 grid grid-cols-2 gap-4">
+        <form onSubmit={guardarRecurso} className="bg-white rounded-lg shadow p-6 mb-6 grid grid-cols-2 gap-4">
+          <h2 className="col-span-2 font-bold text-gray-700">
+            {editandoId ? 'Editar recurso' : 'Nuevo recurso'}
+          </h2>
+
           <div>
             <label className="block text-sm font-medium mb-1">Título</label>
             <input type="text" required value={form.titulo}
@@ -124,25 +174,37 @@ export default function AdminRecursosPage() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Materia</label>
-            <input type="text" value={form.materia}
+            <select value={form.materia}
               onChange={(e) => actualizarCampo('materia', e.target.value)}
-              className="w-full border rounded px-3 py-2" />
+              className="w-full border rounded px-3 py-2">
+              <option value="">Selecciona una materia</option>
+              {materias.map((m) => (
+                <option key={m.id} value={m.nombre}>{m.nombre} (Sem. {m.semestre})</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Carrera</label>
-            <input type="text" value={form.carrera}
+            <select value={form.carrera}
               onChange={(e) => actualizarCampo('carrera', e.target.value)}
-              className="w-full border rounded px-3 py-2" />
+              className="w-full border rounded px-3 py-2">
+              <option value="">Selecciona una carrera</option>
+              {carreras.map((c) => (
+                <option key={c.id} value={c.nombre}>{c.nombre}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Semestre</label>
-            <input type="number" min={1} required value={form.semestre}
+                        <input type="number" min={1} required value={form.semestre}
               onChange={(e) => setForm({ ...form, semestre: Number(e.target.value) })}
               className="w-full border rounded px-3 py-2" />
           </div>
           <div className="col-span-2">
-            <label className="block text-sm font-medium mb-1">Archivo PDF</label>
-            <input type="file" accept="application/pdf" required
+            <label className="block text-sm font-medium mb-1">
+              Archivo PDF {editandoId && <span className="text-gray-400 font-normal">(déjalo vacío para conservar el actual)</span>}
+            </label>
+            <input type="file" accept="application/pdf" required={!editandoId}
               onChange={(e) => setArchivo(e.target.files?.[0] || null)}
               className="w-full border rounded px-3 py-2" />
           </div>
@@ -150,7 +212,7 @@ export default function AdminRecursosPage() {
             {mensaje && <p className="text-sm mb-2 text-gray-700">{mensaje}</p>}
             <button type="submit" disabled={guardando}
               className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800">
-              {guardando ? 'Subiendo...' : 'Subir recurso'}
+              {guardando ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Subir recurso'}
             </button>
           </div>
         </form>
@@ -167,9 +229,14 @@ export default function AdminRecursosPage() {
               <a href={r.archivo_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
                 Ver PDF
               </a>
-              <button onClick={() => eliminarRecurso(r.id)} className="text-red-600 hover:underline text-sm">
-                Eliminar
-              </button>
+              <div className="space-x-3">
+                <button onClick={() => abrirEditar(r)} className="text-blue-600 hover:underline text-sm">
+                  Editar
+                </button>
+                <button onClick={() => eliminarRecurso(r.id)} className="text-red-600 hover:underline text-sm">
+                  Eliminar
+                </button>
+              </div>
             </div>
           </div>
         ))}

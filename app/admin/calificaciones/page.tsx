@@ -7,18 +7,22 @@ import { createClient } from '@/lib/supabase'
 export default function AdminCalificacionesPage() {
   const [calificaciones, setCalificaciones] = useState<any[]>([])
   const [alumnos, setAlumnos] = useState<any[]>([])
+  const [materias, setMaterias] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [mostrarForm, setMostrarForm] = useState(false)
+  const [editandoId, setEditandoId] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState('')
 
-  const [form, setForm] = useState({
+  const formVacio = {
     alumno_id: '',
     semestre: 1,
     materia: '',
     calificacion: '',
     ciclo_escolar: '',
-  })
+  }
+
+  const [form, setForm] = useState(formVacio)
 
   const supabase = createClient()
 
@@ -33,8 +37,14 @@ export default function AdminCalificacionesPage() {
       .select('id, nombre, apellido_paterno, matricula')
       .order('nombre')
 
+    const { data: materiasData } = await supabase
+      .from('materias')
+      .select('*')
+      .order('semestre')
+
     setCalificaciones(califData || [])
     setAlumnos(alumnosData || [])
+    setMaterias(materiasData || [])
     setLoading(false)
   }
 
@@ -46,25 +56,53 @@ export default function AdminCalificacionesPage() {
     setForm({ ...form, [campo]: valor })
   }
 
-  const agregarCalificacion = async (e: React.FormEvent) => {
+  const abrirNuevo = () => {
+    setEditandoId(null)
+    setForm(formVacio)
+    setMensaje('')
+    setMostrarForm(true)
+  }
+
+  const abrirEditar = (c: any) => {
+    setEditandoId(c.id)
+    setForm({
+      alumno_id: c.alumno_id,
+      semestre: c.semestre,
+      materia: c.materia,
+      calificacion: c.calificacion,
+      ciclo_escolar: c.ciclo_escolar || '',
+    })
+    setMensaje('')
+    setMostrarForm(true)
+  }
+
+  const guardarCalificacion = async (e: React.FormEvent) => {
     e.preventDefault()
     setGuardando(true)
     setMensaje('')
 
-    const { error } = await supabase.from('calificaciones').insert({
+    const payload = {
       alumno_id: form.alumno_id,
       semestre: Number(form.semestre),
       materia: form.materia,
       calificacion: Number(form.calificacion),
       ciclo_escolar: form.ciclo_escolar,
-    })
+    }
+
+    let error
+    if (editandoId) {
+      ;({ error } = await supabase.from('calificaciones').update(payload).eq('id', editandoId))
+    } else {
+      ;({ error } = await supabase.from('calificaciones').insert(payload))
+    }
 
     if (error) {
       setMensaje(`Error: ${error.message}`)
     } else {
-      setMensaje('Calificación registrada correctamente.')
-      setForm({ alumno_id: '', semestre: 1, materia: '', calificacion: '', ciclo_escolar: '' })
+      setMensaje(editandoId ? 'Calificación actualizada.' : 'Calificación registrada correctamente.')
+      setForm(formVacio)
       setMostrarForm(false)
+      setEditandoId(null)
       cargar()
     }
 
@@ -72,6 +110,8 @@ export default function AdminCalificacionesPage() {
   }
 
   const eliminarCalificacion = async (id: string) => {
+    const confirmar = confirm('¿Eliminar esta calificación?')
+    if (!confirmar) return
     await supabase.from('calificaciones').delete().eq('id', id)
     cargar()
   }
@@ -84,7 +124,7 @@ export default function AdminCalificacionesPage() {
       <div className="flex justify-between items-center my-4">
         <h1 className="text-2xl font-bold">Gestión de Calificaciones</h1>
         <button
-          onClick={() => setMostrarForm(!mostrarForm)}
+          onClick={mostrarForm ? () => setMostrarForm(false) : abrirNuevo}
           className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
         >
           {mostrarForm ? 'Cancelar' : '+ Registrar calificación'}
@@ -92,7 +132,11 @@ export default function AdminCalificacionesPage() {
       </div>
 
       {mostrarForm && (
-        <form onSubmit={agregarCalificacion} className="bg-white rounded-lg shadow p-6 mb-6 grid grid-cols-2 gap-4">
+        <form onSubmit={guardarCalificacion} className="bg-white rounded-lg shadow p-6 mb-6 grid grid-cols-2 gap-4">
+          <h2 className="col-span-2 font-bold text-gray-700">
+            {editandoId ? 'Editar calificación' : 'Nueva calificación'}
+          </h2>
+
           <div className="col-span-2">
             <label className="block text-sm font-medium mb-1">Alumno</label>
             <select required value={form.alumno_id}
@@ -108,9 +152,16 @@ export default function AdminCalificacionesPage() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Materia</label>
-            <input type="text" required value={form.materia}
+            <select required value={form.materia}
               onChange={(e) => actualizarCampo('materia', e.target.value)}
-              className="w-full border rounded px-3 py-2" />
+              className="w-full border rounded px-3 py-2">
+              <option value="">Selecciona una materia</option>
+              {materias.map((m) => (
+                <option key={m.id} value={m.nombre}>
+                  {m.nombre} (Sem. {m.semestre})
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Semestre</label>
@@ -134,7 +185,7 @@ export default function AdminCalificacionesPage() {
             {mensaje && <p className="text-sm mb-2 text-gray-700">{mensaje}</p>}
             <button type="submit" disabled={guardando}
               className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800">
-              {guardando ? 'Guardando...' : 'Guardar'}
+              {guardando ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Guardar'}
             </button>
           </div>
         </form>
@@ -162,7 +213,10 @@ export default function AdminCalificacionesPage() {
                   {c.calificacion}
                 </td>
                 <td className="p-3">{c.ciclo_escolar || '-'}</td>
-                <td className="p-3">
+                <td className="p-3 space-x-3">
+                  <button onClick={() => abrirEditar(c)} className="text-blue-600 hover:underline text-sm">
+                    Editar
+                  </button>
                   <button onClick={() => eliminarCalificacion(c.id)} className="text-red-600 hover:underline text-sm">
                     Eliminar
                   </button>

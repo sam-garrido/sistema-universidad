@@ -50,8 +50,11 @@ export default function PanelPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="flex justify-between items-center bg-white shadow px-8 py-4">
-        <h1 className="text-2xl font-bold text-blue-700">Portal de Alumnos</h1>
+            <header className="flex justify-between items-center bg-white shadow px-8 py-4">
+        <div className="flex items-center gap-3">
+          <img src="/logo.jpg" alt="Logo" className="h-22 w-auto" />
+          <h1 className="text-2xl font-bold text-blue-700">Portal de Alumnos</h1>
+        </div>
         <div className="flex items-center gap-6">
           <span className="text-gray-700">
             {alumno ? `${alumno.nombre} ${alumno.apellido_paterno}` : ''}
