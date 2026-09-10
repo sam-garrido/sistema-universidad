@@ -14,6 +14,9 @@ export default function AdminCalificacionesPage() {
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState('')
 
+  const [busqueda, setBusqueda] = useState('')
+  const [filtroSemestre, setFiltroSemestre] = useState('')
+
   const formVacio = {
     alumno_id: '',
     semestre: 1,
@@ -116,6 +119,15 @@ export default function AdminCalificacionesPage() {
     cargar()
   }
 
+  const semestresDisponibles = Array.from(new Set(calificaciones.map((c) => c.semestre))).sort((a, b) => a - b)
+
+  const calificacionesFiltradas = calificaciones.filter((c) => {
+    const texto = `${c.alumnos?.matricula || ''} ${c.alumnos?.nombre || ''} ${c.alumnos?.apellido_paterno || ''} ${c.materia}`.toLowerCase()
+    const coincideBusqueda = texto.includes(busqueda.toLowerCase())
+    const coincideSemestre = !filtroSemestre || String(c.semestre) === filtroSemestre
+    return coincideBusqueda && coincideSemestre
+  })
+
   if (loading) return <p className="p-8">Cargando...</p>
 
   return (
@@ -191,6 +203,27 @@ export default function AdminCalificacionesPage() {
         </form>
       )}
 
+      {/* Búsqueda y filtro */}
+      <div className="bg-white rounded-lg shadow p-4 mb-4 flex flex-col md:flex-row gap-3">
+        <input
+          type="text"
+          placeholder="Buscar por alumno, matrícula o materia..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="flex-1 border rounded px-3 py-2"
+        />
+        <select
+          value={filtroSemestre}
+          onChange={(e) => setFiltroSemestre(e.target.value)}
+          className="border rounded px-3 py-2"
+        >
+          <option value="">Todos los semestres</option>
+          {semestresDisponibles.map((s) => (
+            <option key={s} value={s}>Semestre {s}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="w-full text-left">
           <thead className="bg-gray-50">
@@ -204,7 +237,7 @@ export default function AdminCalificacionesPage() {
             </tr>
           </thead>
           <tbody>
-            {calificaciones.map((c) => (
+            {calificacionesFiltradas.map((c) => (
               <tr key={c.id} className="border-t">
                 <td className="p-3">{c.alumnos?.matricula} - {c.alumnos?.nombre} {c.alumnos?.apellido_paterno}</td>
                 <td className="p-3">{c.semestre}</td>
@@ -223,6 +256,13 @@ export default function AdminCalificacionesPage() {
                 </td>
               </tr>
             ))}
+            {calificacionesFiltradas.length === 0 && (
+              <tr>
+                <td colSpan={6} className="p-4 text-center text-gray-500">
+                  No se encontraron calificaciones con esos criterios.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

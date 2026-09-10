@@ -12,6 +12,9 @@ export default function AdminPagosPage() {
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState('')
 
+  const [busqueda, setBusqueda] = useState('')
+  const [filtroEstatus, setFiltroEstatus] = useState('')
+
   const [form, setForm] = useState({
     alumno_id: '',
     concepto: '',
@@ -73,7 +76,7 @@ export default function AdminPagosPage() {
     setGuardando(false)
   }
 
-    const marcarComoPagado = async (id: string) => {
+  const marcarComoPagado = async (id: string) => {
     await supabase.from('pagos').update({ estatus: 'pagado', fecha_pago: new Date().toISOString() }).eq('id', id)
 
     const pago = pagos.find((p) => p.id === id)
@@ -95,6 +98,13 @@ export default function AdminPagosPage() {
 
     cargar()
   }
+
+  const pagosFiltrados = pagos.filter((p) => {
+    const texto = `${p.alumnos?.matricula || ''} ${p.alumnos?.nombre || ''} ${p.alumnos?.apellido_paterno || ''} ${p.concepto}`.toLowerCase()
+    const coincideBusqueda = texto.includes(busqueda.toLowerCase())
+    const coincideEstatus = !filtroEstatus || p.estatus === filtroEstatus
+    return coincideBusqueda && coincideEstatus
+  })
 
   if (loading) return <p className="p-8">Cargando...</p>
 
@@ -169,6 +179,26 @@ export default function AdminPagosPage() {
         </form>
       )}
 
+      {/* Búsqueda y filtro */}
+      <div className="bg-white rounded-lg shadow p-4 mb-4 flex flex-col md:flex-row gap-3">
+        <input
+          type="text"
+          placeholder="Buscar por alumno, matrícula o concepto..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="flex-1 border rounded px-3 py-2"
+        />
+        <select
+          value={filtroEstatus}
+          onChange={(e) => setFiltroEstatus(e.target.value)}
+          className="border rounded px-3 py-2"
+        >
+          <option value="">Todos los estatus</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="pagado">Pagado</option>
+        </select>
+      </div>
+
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="w-full text-left">
           <thead className="bg-gray-50">
@@ -181,7 +211,7 @@ export default function AdminPagosPage() {
             </tr>
           </thead>
           <tbody>
-            {pagos.map((p) => (
+            {pagosFiltrados.map((p) => (
               <tr key={p.id} className="border-t">
                 <td className="p-3">{p.alumnos?.matricula} - {p.alumnos?.nombre} {p.alumnos?.apellido_paterno}</td>
                 <td className="p-3">{p.concepto}</td>
@@ -198,6 +228,13 @@ export default function AdminPagosPage() {
                 </td>
               </tr>
             ))}
+            {pagosFiltrados.length === 0 && (
+              <tr>
+                <td colSpan={5} className="p-4 text-center text-gray-500">
+                  No se encontraron pagos con esos criterios.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -13,6 +13,10 @@ export default function AdminAlumnosPage() {
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState('')
 
+  const [busqueda, setBusqueda] = useState('')
+  const [filtroCarrera, setFiltroCarrera] = useState('')
+  const [filtroSemestre, setFiltroSemestre] = useState('')
+
   const formVacio = {
     email: '',
     password: '',
@@ -54,7 +58,7 @@ export default function AdminAlumnosPage() {
   const abrirEditar = (alumno: any) => {
     setEditandoId(alumno.id)
     setForm({
-      email: '', // no editable aquí, el correo se gestiona desde Authentication
+      email: '',
       password: '',
       matricula: alumno.matricula,
       nombre: alumno.nombre,
@@ -73,7 +77,6 @@ export default function AdminAlumnosPage() {
     setMensaje('')
 
     if (editandoId) {
-      // Modo edición: solo actualizamos el perfil, no el correo/contraseña
       const { error } = await supabase
         .from('alumnos')
         .update({
@@ -95,7 +98,6 @@ export default function AdminAlumnosPage() {
         cargar()
       }
     } else {
-      // Modo alta: crea usuario + perfil vía API route
       const res = await fetch('/api/admin/crear-alumno', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -134,6 +136,17 @@ export default function AdminAlumnosPage() {
       cargar()
     }
   }
+
+  // Semestres únicos presentes en los datos, para el filtro
+  const semestresDisponibles = Array.from(new Set(alumnos.map((a) => a.semestre))).sort((a, b) => a - b)
+
+  const alumnosFiltrados = alumnos.filter((a) => {
+    const texto = `${a.matricula} ${a.nombre} ${a.apellido_paterno} ${a.apellido_materno || ''}`.toLowerCase()
+    const coincideBusqueda = texto.includes(busqueda.toLowerCase())
+    const coincideCarrera = !filtroCarrera || a.carrera === filtroCarrera
+    const coincideSemestre = !filtroSemestre || String(a.semestre) === filtroSemestre
+    return coincideBusqueda && coincideCarrera && coincideSemestre
+  })
 
   if (loading) return <p className="p-8">Cargando...</p>
 
@@ -225,6 +238,37 @@ export default function AdminAlumnosPage() {
         </form>
       )}
 
+      {/* Búsqueda y filtros */}
+      <div className="bg-white rounded-lg shadow p-4 mb-4 flex flex-col md:flex-row gap-3">
+        <input
+          type="text"
+          placeholder="Buscar por matrícula o nombre..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="flex-1 border rounded px-3 py-2"
+        />
+        <select
+          value={filtroCarrera}
+          onChange={(e) => setFiltroCarrera(e.target.value)}
+          className="border rounded px-3 py-2"
+        >
+          <option value="">Todas las carreras</option>
+          {carreras.map((c) => (
+            <option key={c.id} value={c.nombre}>{c.nombre}</option>
+          ))}
+        </select>
+        <select
+          value={filtroSemestre}
+          onChange={(e) => setFiltroSemestre(e.target.value)}
+          className="border rounded px-3 py-2"
+        >
+          <option value="">Todos los semestres</option>
+          {semestresDisponibles.map((s) => (
+            <option key={s} value={s}>Semestre {s}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="w-full text-left">
           <thead className="bg-gray-50">
@@ -237,7 +281,7 @@ export default function AdminAlumnosPage() {
             </tr>
           </thead>
           <tbody>
-            {alumnos.map((a) => (
+            {alumnosFiltrados.map((a) => (
               <tr key={a.id} className="border-t">
                 <td className="p-3">{a.matricula}</td>
                 <td className="p-3">{a.nombre} {a.apellido_paterno} {a.apellido_materno}</td>
@@ -256,6 +300,13 @@ export default function AdminAlumnosPage() {
                 </td>
               </tr>
             ))}
+            {alumnosFiltrados.length === 0 && (
+              <tr>
+                <td colSpan={5} className="p-4 text-center text-gray-500">
+                  No se encontraron alumnos con esos criterios.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
