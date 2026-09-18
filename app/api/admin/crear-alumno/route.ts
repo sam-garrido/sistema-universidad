@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase-admin'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { email, password, matricula, nombre, apellido_paterno, apellido_materno, carrera, semestre } = body
+  const { email, password, matricula, nombre, apellido_paterno, apellido_materno, carrera, semestre, grupo } = body
 
   const supabaseAdmin = createAdminClient()
 
@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
     apellido_materno,
     carrera,
     semestre,
+    grupo,
   })
 
   if (alumnoError) {

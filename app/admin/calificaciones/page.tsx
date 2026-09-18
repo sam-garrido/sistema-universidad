@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import { useAdmin } from '../AdminContext'
 
 export default function AdminCalificacionesPage() {
+  const { admin } = useAdmin()
   const [calificaciones, setCalificaciones] = useState<any[]>([])
   const [alumnos, setAlumnos] = useState<any[]>([])
-  const [materias, setMaterias] = useState<any[]>([])
+  const [materiasAsignadas, setMateriasAsignadas] = useState<any[]>([])
+  const [cicloActual, setCicloActual] = useState('')
   const [loading, setLoading] = useState(true)
   const [mostrarForm, setMostrarForm] = useState(false)
   const [editandoId, setEditandoId] = useState<string | null>(null)
@@ -19,10 +22,8 @@ export default function AdminCalificacionesPage() {
 
   const formVacio = {
     alumno_id: '',
-    semestre: 1,
     materia: '',
     calificacion: '',
-    ciclo_escolar: '',
   }
 
   const [form, setForm] = useState(formVacio)
@@ -30,32 +31,49 @@ export default function AdminCalificacionesPage() {
   const supabase = createClient()
 
   const cargar = async () => {
+    if (!admin) return
+
     const { data: califData } = await supabase
       .from('calificaciones')
       .select('*, alumnos(nombre, apellido_paterno, matricula)')
       .order('semestre', { ascending: true })
 
+    // El RLS ya limita esto a los alumnos de las materias/grupos del maestro
     const { data: alumnosData } = await supabase
       .from('alumnos')
       .select('id, nombre, apellido_paterno, matricula')
       .order('nombre')
 
-    const { data: materiasData } = await supabase
-      .from('materias')
-      .select('*')
-      .order('semestre')
+    // Solo las materias que tiene asignadas este maestro
+    const { data: asignacionesData } = await supabase
+      .from('asignaciones_docente')
+      .select('materias(id, nombre, semestre)')
+      .eq('docente_id', admin.id)
+
+    const materiasUnicas = Array.from(
+      new Map(
+        (asignacionesData || [])
+          .map((a: any) => a.materias)
+          .filter(Boolean)
+          .map((m: any) => [m.id, m])
+      ).values()
+    )
+
+    // Ciclo escolar actual, calculado automáticamente
+    const { data: cicloData } = await supabase.rpc('ciclo_escolar_actual')
 
     setCalificaciones(califData || [])
     setAlumnos(alumnosData || [])
-    setMaterias(materiasData || [])
+    setMateriasAsignadas(materiasUnicas)
+    setCicloActual(cicloData || '')
     setLoading(false)
   }
 
   useEffect(() => {
     cargar()
-  }, [])
+  }, [admin])
 
-  const actualizarCampo = (campo: string, valor: string | number) => {
+  const actualizarCampo = (campo: string, valor: string) => {
     setForm({ ...form, [campo]: valor })
   }
 
@@ -70,26 +88,29 @@ export default function AdminCalificacionesPage() {
     setEditandoId(c.id)
     setForm({
       alumno_id: c.alumno_id,
-      semestre: c.semestre,
       materia: c.materia,
       calificacion: c.calificacion,
-      ciclo_escolar: c.ciclo_escolar || '',
     })
     setMensaje('')
     setMostrarForm(true)
   }
+
+  // Semestre de la materia actualmente seleccionada, para mostrarlo (solo lectura)
+  const semestreDeLaMateria = materiasAsignadas.find((m: any) => m.nombre === form.materia)?.semestre
 
   const guardarCalificacion = async (e: React.FormEvent) => {
     e.preventDefault()
     setGuardando(true)
     setMensaje('')
 
+    const materiaSeleccionada = materiasAsignadas.find((m: any) => m.nombre === form.materia)
+
     const payload = {
       alumno_id: form.alumno_id,
-      semestre: Number(form.semestre),
+      semestre: materiaSeleccionada?.semestre,
       materia: form.materia,
       calificacion: Number(form.calificacion),
-      ciclo_escolar: form.ciclo_escolar,
+      ciclo_escolar: cicloActual,
     }
 
     let error
@@ -100,7 +121,7 @@ export default function AdminCalificacionesPage() {
     }
 
     if (error) {
-      setMensaje(`Error: ${error.message}`)
+      setMensaje('No puedes registrar esta calificación: el alumno o la materia no está entre tus asignaciones.')
     } else {
       setMensaje(editandoId ? 'Calificación actualizada.' : 'Calificación registrada correctamente.')
       setForm(formVacio)
@@ -143,6 +164,12 @@ export default function AdminCalificacionesPage() {
         </button>
       </div>
 
+      {materiasAsignadas.length === 0 && !loading && (
+        <div className="bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-lg p-4 mb-4">
+          Aún no tienes materias asignadas. Pide a Control Escolar que te asigne una materia y grupo para poder registrar calificaciones.
+        </div>
+      )}
+
       {mostrarForm && (
         <form onSubmit={guardarCalificacion} className="bg-white rounded-lg shadow p-6 mb-6 grid grid-cols-2 gap-4">
           <h2 className="col-span-2 font-bold text-gray-700">
@@ -168,7 +195,7 @@ export default function AdminCalificacionesPage() {
               onChange={(e) => actualizarCampo('materia', e.target.value)}
               className="w-full border rounded px-3 py-2">
               <option value="">Selecciona una materia</option>
-              {materias.map((m) => (
+              {materiasAsignadas.map((m: any) => (
                 <option key={m.id} value={m.nombre}>
                   {m.nombre} (Sem. {m.semestre})
                 </option>
@@ -177,9 +204,12 @@ export default function AdminCalificacionesPage() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Semestre</label>
-            <input type="number" required min={1} value={form.semestre}
-              onChange={(e) => actualizarCampo('semestre', Number(e.target.value))}
-              className="w-full border rounded px-3 py-2" />
+            <input
+              type="text"
+              disabled
+              value={semestreDeLaMateria || '—'}
+              className="w-full border rounded px-3 py-2 bg-gray-100 text-gray-500"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Calificación</label>
@@ -189,9 +219,12 @@ export default function AdminCalificacionesPage() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Ciclo escolar</label>
-            <input type="text" placeholder="2025-2026 A" value={form.ciclo_escolar}
-              onChange={(e) => actualizarCampo('ciclo_escolar', e.target.value)}
-              className="w-full border rounded px-3 py-2" />
+            <input
+              type="text"
+              disabled
+              value={cicloActual}
+              className="w-full border rounded px-3 py-2 bg-gray-100 text-gray-500"
+            />
           </div>
           <div className="col-span-2">
             {mensaje && <p className="text-sm mb-2 text-gray-700">{mensaje}</p>}
