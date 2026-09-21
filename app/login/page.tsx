@@ -30,8 +30,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={handleLogin} className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+      <form onSubmit={handleLogin} className="bg-white p-6 sm:p-8 rounded-lg shadow-md w-full max-w-sm">
         <h1 className="text-2xl font-bold mb-6 text-center text-blue-700">Portal de Alumnos</h1>
 
         <label className="block text-sm font-medium mb-1">Correo</label>
@@ -54,7 +54,7 @@ export default function LoginPage() {
 
         {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
-                <button
+        <button
           type="submit"
           disabled={loading}
           className="w-full bg-blue-700 text-white py-2 rounded hover:bg-blue-800"

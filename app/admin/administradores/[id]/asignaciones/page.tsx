@@ -67,7 +67,7 @@ export default function AsignacionesDocentePage() {
       grupo,
     })
 
-        if (error) {
+    if (error) {
       if (error.code === '23505') {
         setError('Esa materia y grupo ya están asignados a otro maestro en este ciclo escolar. Revisa las asignaciones existentes.')
       } else {
@@ -92,7 +92,7 @@ export default function AsignacionesDocentePage() {
   if (loading) return <p className="p-8">Cargando...</p>
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-2xl mx-auto">
       <Link href="/admin/administradores" className="text-blue-600 hover:underline text-sm">
         ← Volver a Administradores
       </Link>
@@ -100,7 +100,7 @@ export default function AsignacionesDocentePage() {
       <h1 className="text-2xl font-bold mt-4 mb-1">Materias asignadas</h1>
       <p className="text-gray-600 mb-6">Maestro: <strong>{docente?.nombre}</strong></p>
 
-      <form onSubmit={handleAgregar} className="bg-white rounded-lg shadow p-6 mb-8 space-y-4">
+      <form onSubmit={handleAgregar} className="bg-white rounded-lg shadow p-4 sm:p-6 mb-8 space-y-4">
         <h2 className="font-semibold">Asignar nueva materia</h2>
 
         <div>
@@ -137,7 +137,7 @@ export default function AsignacionesDocentePage() {
         <button
           type="submit"
           disabled={guardando}
-          className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
+          className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 w-full sm:w-auto"
         >
           {guardando ? 'Guardando...' : 'Asignar'}
         </button>
@@ -147,8 +147,8 @@ export default function AsignacionesDocentePage() {
       {asignaciones.length === 0 ? (
         <p className="text-gray-500">Este maestro aún no tiene materias asignadas.</p>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full text-left">
+        <div className="bg-white rounded-lg shadow overflow-x-auto">
+          <table className="w-full text-left min-w-[560px]">
             <thead className="bg-gray-100">
               <tr>
                 <th className="p-3">Materia</th>
@@ -167,7 +167,7 @@ export default function AsignacionesDocentePage() {
                   <td className="p-3">{a.materias?.semestre}</td>
                   <td className="p-3">{a.grupo}</td>
                   <td className="p-3">{a.ciclo_escolar}</td>
-                  <td className="p-3">
+                  <td className="p-3 whitespace-nowrap">
                     <button
                       onClick={() => handleEliminar(a.id)}
                       className="text-red-600 hover:underline text-sm"

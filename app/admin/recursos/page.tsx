@@ -85,7 +85,6 @@ export default function AdminRecursosPage() {
 
     let archivoUrl: string | undefined
 
-    // Si se seleccionó un archivo nuevo (alta, o reemplazo en edición), lo subimos
     if (archivo) {
       const nombreArchivo = `${Date.now()}-${archivo.name}`
       const { error: uploadError } = await supabase.storage
@@ -142,21 +141,21 @@ export default function AdminRecursosPage() {
   if (loading) return <p className="p-8">Cargando...</p>
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
       <Link href="/admin" className="text-blue-600 hover:underline">← Volver al panel</Link>
-      <div className="flex justify-between items-center my-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 my-4">
         <h1 className="text-2xl font-bold">Recursos Bibliográficos</h1>
         <button
           onClick={mostrarForm ? () => setMostrarForm(false) : abrirNuevo}
-          className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800"
+          className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 w-full sm:w-auto"
         >
           {mostrarForm ? 'Cancelar' : '+ Subir recurso'}
         </button>
       </div>
 
       {mostrarForm && (
-        <form onSubmit={guardarRecurso} className="bg-white rounded-lg shadow p-6 mb-6 grid grid-cols-2 gap-4">
-          <h2 className="col-span-2 font-bold text-gray-700">
+        <form onSubmit={guardarRecurso} className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <h2 className="sm:col-span-2 font-bold text-gray-700">
             {editandoId ? 'Editar recurso' : 'Nuevo recurso'}
           </h2>
 
@@ -196,11 +195,11 @@ export default function AdminRecursosPage() {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Semestre</label>
-                        <input type="number" min={1} required value={form.semestre}
+            <input type="number" min={1} required value={form.semestre}
               onChange={(e) => setForm({ ...form, semestre: Number(e.target.value) })}
               className="w-full border rounded px-3 py-2" />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <label className="block text-sm font-medium mb-1">
               Archivo PDF {editandoId && <span className="text-gray-400 font-normal">(déjalo vacío para conservar el actual)</span>}
             </label>
@@ -208,10 +207,10 @@ export default function AdminRecursosPage() {
               onChange={(e) => setArchivo(e.target.files?.[0] || null)}
               className="w-full border rounded px-3 py-2" />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             {mensaje && <p className="text-sm mb-2 text-gray-700">{mensaje}</p>}
             <button type="submit" disabled={guardando}
-              className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800">
+              className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full sm:w-auto">
               {guardando ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Subir recurso'}
             </button>
           </div>
@@ -225,7 +224,7 @@ export default function AdminRecursosPage() {
             <p className="text-sm text-gray-500">{r.autor}</p>
             <p className="text-sm text-gray-500">{r.materia}</p>
             <p className="text-xs text-gray-400 mb-3">Semestre {r.semestre}</p>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-2">
               <a href={r.archivo_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
                 Ver PDF
               </a>

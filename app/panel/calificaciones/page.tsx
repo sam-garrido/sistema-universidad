@@ -49,7 +49,7 @@ export default function CalificacionesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <Link href="/panel" className="text-blue-600 hover:underline">← Volver al panel</Link>
       <h1 className="text-2xl font-bold text-red-600 my-4">Calificaciones</h1>
 
@@ -57,14 +57,14 @@ export default function CalificacionesPage() {
         <p className="text-gray-500">Aún no tienes calificaciones registradas.</p>
       ) : (
         semestres.map((sem) => (
-          <div key={sem} className="bg-white rounded-lg shadow p-6 mb-4">
-            <div className="flex justify-between items-center mb-3">
+          <div key={sem} className="bg-white rounded-lg shadow p-4 sm:p-6 mb-4 overflow-x-auto">
+            <div className="flex justify-between items-center mb-3 min-w-[420px] sm:min-w-0">
               <h2 className="font-bold text-gray-800">Semestre {sem}</h2>
               <span className="text-sm font-medium text-gray-600">
                 Promedio: {promedio(porSemestre[sem])}
               </span>
             </div>
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[420px]">
               <thead>
                 <tr className="border-b">
                   <th className="py-2">Materia</th>

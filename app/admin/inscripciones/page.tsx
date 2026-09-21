@@ -83,12 +83,12 @@ export default function AdminInscripcionesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
       <Link href="/admin" className="text-blue-600 hover:underline">← Volver al panel</Link>
       <h1 className="text-2xl font-bold my-4">Gestión de Inscripciones</h1>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full text-left">
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <table className="w-full text-left min-w-[860px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="p-3">Folio</th>
@@ -116,11 +116,11 @@ export default function AdminInscripcionesPage() {
                     </button>
                   ) : '-'}
                 </td>
-                <td className={`p-3 font-medium ${colorEstatus(i.estatus)}`}>{i.estatus}</td>
-                <td className="p-3 space-x-3">
+                <td className={`p-3 font-medium whitespace-nowrap ${colorEstatus(i.estatus)}`}>{i.estatus}</td>
+                <td className="p-3 space-x-3 whitespace-nowrap">
                   {i.estatus === 'pendiente' && (
                     <>
-                                            <button
+                      <button
                         onClick={() => actualizarEstatus(i.id, 'confirmada', i.alumno_id, i.semestre, `Inscripción ${i.ciclo_escolar}`, i.monto, `${i.alumnos?.nombre} ${i.alumnos?.apellido_paterno}`, i.alumnos?.matricula, i.folio)}
                         className="text-green-600 hover:underline text-sm"
                       >

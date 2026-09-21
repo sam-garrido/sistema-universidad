@@ -38,13 +38,11 @@ export default function AdminCalificacionesPage() {
       .select('*, alumnos(nombre, apellido_paterno, matricula)')
       .order('semestre', { ascending: true })
 
-    // El RLS ya limita esto a los alumnos de las materias/grupos del maestro
     const { data: alumnosData } = await supabase
       .from('alumnos')
       .select('id, nombre, apellido_paterno, matricula')
       .order('nombre')
 
-    // Solo las materias que tiene asignadas este maestro
     const { data: asignacionesData } = await supabase
       .from('asignaciones_docente')
       .select('materias(id, nombre, semestre)')
@@ -59,7 +57,6 @@ export default function AdminCalificacionesPage() {
       ).values()
     )
 
-    // Ciclo escolar actual, calculado automáticamente
     const { data: cicloData } = await supabase.rpc('ciclo_escolar_actual')
 
     setCalificaciones(califData || [])
@@ -95,7 +92,6 @@ export default function AdminCalificacionesPage() {
     setMostrarForm(true)
   }
 
-  // Semestre de la materia actualmente seleccionada, para mostrarlo (solo lectura)
   const semestreDeLaMateria = materiasAsignadas.find((m: any) => m.nombre === form.materia)?.semestre
 
   const guardarCalificacion = async (e: React.FormEvent) => {
@@ -152,13 +148,13 @@ export default function AdminCalificacionesPage() {
   if (loading) return <p className="p-8">Cargando...</p>
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
       <Link href="/admin" className="text-blue-600 hover:underline">← Volver al panel</Link>
-      <div className="flex justify-between items-center my-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 my-4">
         <h1 className="text-2xl font-bold">Gestión de Calificaciones</h1>
         <button
           onClick={mostrarForm ? () => setMostrarForm(false) : abrirNuevo}
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 w-full sm:w-auto"
         >
           {mostrarForm ? 'Cancelar' : '+ Registrar calificación'}
         </button>
@@ -171,12 +167,12 @@ export default function AdminCalificacionesPage() {
       )}
 
       {mostrarForm && (
-        <form onSubmit={guardarCalificacion} className="bg-white rounded-lg shadow p-6 mb-6 grid grid-cols-2 gap-4">
-          <h2 className="col-span-2 font-bold text-gray-700">
+        <form onSubmit={guardarCalificacion} className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <h2 className="sm:col-span-2 font-bold text-gray-700">
             {editandoId ? 'Editar calificación' : 'Nueva calificación'}
           </h2>
 
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <label className="block text-sm font-medium mb-1">Alumno</label>
             <select required value={form.alumno_id}
               onChange={(e) => actualizarCampo('alumno_id', e.target.value)}
@@ -226,17 +222,16 @@ export default function AdminCalificacionesPage() {
               className="w-full border rounded px-3 py-2 bg-gray-100 text-gray-500"
             />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             {mensaje && <p className="text-sm mb-2 text-gray-700">{mensaje}</p>}
             <button type="submit" disabled={guardando}
-              className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800">
+              className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full sm:w-auto">
               {guardando ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Guardar'}
             </button>
           </div>
         </form>
       )}
 
-      {/* Búsqueda y filtro */}
       <div className="bg-white rounded-lg shadow p-4 mb-4 flex flex-col md:flex-row gap-3">
         <input
           type="text"
@@ -257,8 +252,8 @@ export default function AdminCalificacionesPage() {
         </select>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full text-left">
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <table className="w-full text-left min-w-[640px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="p-3">Alumno</th>
@@ -279,7 +274,7 @@ export default function AdminCalificacionesPage() {
                   {c.calificacion}
                 </td>
                 <td className="p-3">{c.ciclo_escolar || '-'}</td>
-                <td className="p-3 space-x-3">
+                <td className="p-3 space-x-3 whitespace-nowrap">
                   <button onClick={() => abrirEditar(c)} className="text-blue-600 hover:underline text-sm">
                     Editar
                   </button>

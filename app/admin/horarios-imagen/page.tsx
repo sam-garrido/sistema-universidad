@@ -75,11 +75,11 @@ export default function AdminHorariosImagenPage() {
   if (loading) return <p className="p-8">Cargando...</p>
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
       <Link href="/admin" className="text-blue-600 hover:underline">← Volver al panel</Link>
       <h1 className="text-2xl font-bold my-4">Horarios por Semestre (Imagen)</h1>
 
-      <form onSubmit={subirHorario} className="bg-white rounded-lg shadow p-6 mb-6 flex flex-col gap-4 max-w-md">
+      <form onSubmit={subirHorario} className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 flex flex-col gap-4 max-w-md">
         <div>
           <label className="block text-sm font-medium mb-1">Semestre</label>
           <input type="number" min={1} required value={semestre}
@@ -94,7 +94,7 @@ export default function AdminHorariosImagenPage() {
         </div>
         {mensaje && <p className="text-sm text-gray-700">{mensaje}</p>}
         <button type="submit" disabled={guardando}
-          className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800">
+          className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full sm:w-auto">
           {guardando ? 'Subiendo...' : 'Subir / Actualizar horario'}
         </button>
       </form>

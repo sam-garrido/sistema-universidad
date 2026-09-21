@@ -69,10 +69,10 @@ export default function AdministradoresPage() {
   }
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Administradores</h1>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 mb-8 space-y-4">
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-4 sm:p-6 mb-8 space-y-4">
         <h2 className="font-semibold text-lg">Nuevo administrador</h2>
 
         <div>
@@ -137,7 +137,7 @@ export default function AdministradoresPage() {
         <button
           type="submit"
           disabled={guardando}
-          className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900"
+          className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 w-full sm:w-auto"
         >
           {guardando ? 'Creando...' : 'Crear administrador'}
         </button>
@@ -147,8 +147,8 @@ export default function AdministradoresPage() {
       {loading ? (
         <p>Cargando...</p>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full text-left">
+        <div className="bg-white rounded-lg shadow overflow-x-auto">
+          <table className="w-full text-left min-w-[560px]">
             <thead className="bg-gray-100">
               <tr>
                 <th className="p-3">Nombre</th>
@@ -158,12 +158,12 @@ export default function AdministradoresPage() {
               </tr>
             </thead>
             <tbody>
-                            {admins.map((a) => (
+              {admins.map((a) => (
                 <tr key={a.id} className="border-t">
                   <td className="p-3">{a.nombre}</td>
                   <td className="p-3">{a.puesto}</td>
                   <td className="p-3">{a.rol === 'control_escolar' ? 'Control Escolar' : 'Maestros'}</td>
-                  <td className="p-3">
+                  <td className="p-3 whitespace-nowrap">
                     {a.rol === 'maestros' && (
                       <Link
                         href={`/admin/administradores/${a.id}/asignaciones`}
@@ -175,7 +175,6 @@ export default function AdministradoresPage() {
                   </td>
                 </tr>
               ))}
-            
             </tbody>
           </table>
         </div>

@@ -23,10 +23,10 @@ export default function InscripcionesPage() {
   const [referencia, setReferencia] = useState('')
   const [ficha, setFicha] = useState<File | null>(null)
 
-    const router = useRouter()
+  const router = useRouter()
   const supabase = createClient()
 
-    const cargar = async () => {
+  const cargar = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       router.push('/login')
@@ -81,7 +81,6 @@ export default function InscripcionesPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user || !alumno) return
 
-    // 1. Subir la ficha de depósito a una carpeta con el UID del alumno
     const nombreArchivo = `${user.id}/${Date.now()}-${ficha.name}`
     const { error: uploadError } = await supabase.storage
       .from('comprobantes')
@@ -93,11 +92,9 @@ export default function InscripcionesPage() {
       return
     }
 
-    // 2. Generar folio único
     const folio = `INS-${alumno.matricula}-${Date.now()}`
     const siguienteSemestre = (alumno.semestre || 1) + 1
 
-    // 3. Registrar la solicitud de inscripción
     const { error } = await supabase.from('inscripciones').insert({
       alumno_id: user.id,
       ciclo_escolar: '2026-2027 B',
@@ -131,19 +128,19 @@ export default function InscripcionesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <Link href="/panel" className="text-blue-600 hover:underline">← Volver al panel</Link>
       <h1 className="text-2xl font-bold text-purple-700 my-4">Inscripciones</h1>
 
       <button
         onClick={() => setMostrarForm(!mostrarForm)}
-        className="mb-6 bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800"
+        className="mb-6 bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800 w-full sm:w-auto"
       >
         {mostrarForm ? 'Cancelar' : 'Solicitar inscripción / reinscripción'}
       </button>
 
       {mostrarForm && (
-        <div className="bg-white rounded-lg shadow p-6 mb-6 max-w-lg">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 max-w-lg">
           <h2 className="font-bold mb-3">Datos para tu depósito</h2>
           <div className="bg-purple-50 rounded p-4 mb-4 text-sm space-y-1">
             <p><strong>Banco:</strong> {DATOS_BANCARIOS.banco}</p>
@@ -178,7 +175,7 @@ export default function InscripcionesPage() {
             <button
               type="submit"
               disabled={enviando}
-              className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800"
+              className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800 w-full sm:w-auto"
             >
               {enviando ? 'Enviando...' : 'Enviar solicitud'}
             </button>
@@ -189,8 +186,8 @@ export default function InscripcionesPage() {
       {inscripciones.length === 0 ? (
         <p className="text-gray-500">No tienes inscripciones registradas.</p>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full text-left">
+        <div className="bg-white rounded-lg shadow overflow-x-auto">
+          <table className="w-full text-left min-w-[640px]">
             <thead className="bg-purple-50">
               <tr>
                 <th className="p-3">Folio</th>

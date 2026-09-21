@@ -109,21 +109,21 @@ export default function AdminPagosPage() {
   if (loading) return <p className="p-8">Cargando...</p>
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
       <Link href="/admin" className="text-blue-600 hover:underline">← Volver al panel</Link>
-      <div className="flex justify-between items-center my-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 my-4">
         <h1 className="text-2xl font-bold">Gestión de Pagos</h1>
         <button
           onClick={() => setMostrarForm(!mostrarForm)}
-          className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700"
+          className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 w-full sm:w-auto"
         >
           {mostrarForm ? 'Cancelar' : '+ Registrar pago / adeudo'}
         </button>
       </div>
 
       {mostrarForm && (
-        <form onSubmit={registrarPago} className="bg-white rounded-lg shadow p-6 mb-6 grid grid-cols-2 gap-4">
-          <div className="col-span-2">
+        <form onSubmit={registrarPago} className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-2">
             <label className="block text-sm font-medium mb-1">Alumno</label>
             <select required value={form.alumno_id}
               onChange={(e) => actualizarCampo('alumno_id', e.target.value)}
@@ -163,16 +163,16 @@ export default function AdminPagosPage() {
               onChange={(e) => actualizarCampo('fecha_limite', e.target.value)}
               className="w-full border rounded px-3 py-2" />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <label className="block text-sm font-medium mb-1">URL del comprobante (opcional)</label>
             <input type="text" value={form.comprobante_url}
               onChange={(e) => actualizarCampo('comprobante_url', e.target.value)}
               className="w-full border rounded px-3 py-2" placeholder="Link del PDF en Supabase Storage" />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             {mensaje && <p className="text-sm mb-2 text-gray-700">{mensaje}</p>}
             <button type="submit" disabled={guardando}
-              className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800">
+              className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full sm:w-auto">
               {guardando ? 'Guardando...' : 'Guardar'}
             </button>
           </div>
@@ -199,8 +199,8 @@ export default function AdminPagosPage() {
         </select>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full text-left">
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <table className="w-full text-left min-w-[640px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="p-3">Alumno</th>
@@ -219,7 +219,7 @@ export default function AdminPagosPage() {
                 <td className={`p-3 font-medium ${p.estatus === 'pagado' ? 'text-green-600' : 'text-yellow-600'}`}>
                   {p.estatus}
                 </td>
-                <td className="p-3">
+                <td className="p-3 whitespace-nowrap">
                   {p.estatus === 'pendiente' && (
                     <button onClick={() => marcarComoPagado(p.id)} className="text-blue-600 hover:underline text-sm">
                       Marcar como pagado

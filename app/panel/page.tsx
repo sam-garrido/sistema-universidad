@@ -40,7 +40,7 @@ export default function PanelPage() {
 
   if (loading) return <p className="p-8">Cargando...</p>
 
-    const accesos = [
+  const accesos = [
     { nombre: 'Horario de Clases', href: '/panel/horario', color: 'text-green-600' },
     { nombre: 'Calificaciones', href: '/panel/calificaciones', color: 'text-red-500' },
     { nombre: 'Pagos', href: '/panel/pagos', color: 'text-orange-500' },
@@ -50,12 +50,12 @@ export default function PanelPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-            <header className="flex justify-between items-center bg-white shadow px-8 py-4">
+      <header className="flex flex-col sm:flex-row justify-between items-center gap-3 bg-white shadow px-4 sm:px-8 py-4 text-center sm:text-left">
         <div className="flex items-center gap-3">
-          <img src="/logo.jpg" alt="Logo" className="h-22 w-auto" />
-          <h1 className="text-2xl font-bold text-blue-700">Portal de Alumnos</h1>
+          <img src="/logo.jpg" alt="Logo" className="h-14 sm:h-22 w-auto" />
+          <h1 className="text-lg sm:text-2xl font-bold text-blue-700">Portal de Alumnos</h1>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-6">
           <span className="text-gray-700">
             {alumno ? `${alumno.nombre} ${alumno.apellido_paterno}` : ''}
           </span>
@@ -65,7 +65,7 @@ export default function PanelPage() {
         </div>
       </header>
 
-      <nav className="grid grid-cols-2 md:grid-cols-5 gap-4 p-8">
+      <nav className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 p-4 sm:p-8">
         {accesos.map((a) => (
           <Link
             key={a.href}
@@ -78,7 +78,7 @@ export default function PanelPage() {
       </nav>
 
       {alumno && (
-        <div className="mx-8 bg-white rounded-lg shadow p-6">
+        <div className="mx-4 sm:mx-8 bg-white rounded-lg shadow p-4 sm:p-6">
           <h2 className="text-lg font-bold mb-2">Mi información</h2>
           <p><strong>Nombre:</strong> {alumno.nombre} {alumno.apellido_paterno} {alumno.apellido_materno}</p>
           <p><strong>Matrícula:</strong> {alumno.matricula}</p>

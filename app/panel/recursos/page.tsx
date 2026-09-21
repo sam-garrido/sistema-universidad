@@ -10,7 +10,7 @@ export default function RecursosPage() {
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
-    useEffect(() => {
+  useEffect(() => {
     const cargar = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
@@ -40,8 +40,8 @@ export default function RecursosPage() {
 
   if (loading) return <p className="p-8">Cargando...</p>
 
-    return (
-    <div className="min-h-screen bg-gray-50 p-8">
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <Link href="/panel" className="text-blue-600 hover:underline">← Volver al panel</Link>
       <h1 className="text-2xl font-bold text-blue-700 my-4">Recursos Bibliográficos</h1>
 
@@ -62,7 +62,7 @@ export default function RecursosPage() {
               <h2 className="font-bold text-gray-800">{r.titulo}</h2>
               <p className="text-sm text-gray-500">{r.autor}</p>
               <p className="text-sm text-gray-500 mb-3">{r.materia}</p>
-                            <a href={r.archivo_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm font-medium">Ver / Descargar PDF</a>
+              <a href={r.archivo_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm font-medium">Ver / Descargar PDF</a>
             </div>
           ))}
         </div>

@@ -110,7 +110,7 @@ export default function AdminCatalogosPage() {
   if (loading) return <p className="p-8">Cargando...</p>
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
       <Link href="/admin" className="text-blue-600 hover:underline">← Volver al panel</Link>
       <h1 className="text-2xl font-bold my-4">Catálogos: Carreras y Materias</h1>
 
@@ -118,9 +118,9 @@ export default function AdminCatalogosPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Carreras */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
           <h2 className="font-bold mb-3">Carreras</h2>
-          <form onSubmit={guardarCarrera} className="flex gap-2 mb-4">
+          <form onSubmit={guardarCarrera} className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
               type="text"
               placeholder="Nombre de la carrera"
@@ -128,20 +128,22 @@ export default function AdminCatalogosPage() {
               onChange={(e) => setNuevaCarrera(e.target.value)}
               className="flex-1 border rounded px-3 py-2"
             />
-            <button type="submit" className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
-              {editandoCarreraId ? 'Guardar' : 'Agregar'}
-            </button>
-            {editandoCarreraId && (
-              <button type="button" onClick={cancelarEdicionCarrera} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">
-                Cancelar
+            <div className="flex gap-2">
+              <button type="submit" className="flex-1 sm:flex-none bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
+                {editandoCarreraId ? 'Guardar' : 'Agregar'}
               </button>
-            )}
+              {editandoCarreraId && (
+                <button type="button" onClick={cancelarEdicionCarrera} className="flex-1 sm:flex-none bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">
+                  Cancelar
+                </button>
+              )}
+            </div>
           </form>
           <ul className="divide-y">
             {carreras.map((c) => (
-              <li key={c.id} className="flex justify-between items-center py-2">
+              <li key={c.id} className="flex flex-wrap justify-between items-center gap-2 py-2">
                 <span>{c.nombre}</span>
-                <div className="space-x-3">
+                <div className="space-x-3 whitespace-nowrap">
                   <button onClick={() => editarCarrera(c)} className="text-blue-600 hover:underline text-sm">
                     Editar
                   </button>
@@ -155,7 +157,7 @@ export default function AdminCatalogosPage() {
         </div>
 
         {/* Materias */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
           <h2 className="font-bold mb-3">Materias</h2>
           <form onSubmit={guardarMateria} className="flex flex-col gap-2 mb-4">
             <input
@@ -165,7 +167,7 @@ export default function AdminCatalogosPage() {
               onChange={(e) => setNuevaMateria({ ...nuevaMateria, nombre: e.target.value })}
               className="border rounded px-3 py-2"
             />
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <select
                 value={nuevaMateria.carrera}
                 onChange={(e) => setNuevaMateria({ ...nuevaMateria, carrera: e.target.value })}
@@ -182,15 +184,15 @@ export default function AdminCatalogosPage() {
                 placeholder="Semestre"
                 value={nuevaMateria.semestre}
                 onChange={(e) => setNuevaMateria({ ...nuevaMateria, semestre: Number(e.target.value) })}
-                className="w-24 border rounded px-3 py-2"
+                className="sm:w-24 border rounded px-3 py-2"
               />
             </div>
             <div className="flex gap-2">
-              <button type="submit" className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
+              <button type="submit" className="flex-1 sm:flex-none bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
                 {editandoMateriaId ? 'Guardar cambios' : 'Agregar materia'}
               </button>
               {editandoMateriaId && (
-                <button type="button" onClick={cancelarEdicionMateria} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">
+                <button type="button" onClick={cancelarEdicionMateria} className="flex-1 sm:flex-none bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">
                   Cancelar
                 </button>
               )}
@@ -198,9 +200,9 @@ export default function AdminCatalogosPage() {
           </form>
           <ul className="divide-y max-h-64 overflow-y-auto">
             {materias.map((m) => (
-              <li key={m.id} className="flex justify-between items-center py-2">
+              <li key={m.id} className="flex flex-wrap justify-between items-center gap-2 py-2">
                 <span>{m.nombre} <span className="text-gray-400 text-sm">(Sem. {m.semestre})</span></span>
-                <div className="space-x-3">
+                <div className="space-x-3 whitespace-nowrap">
                   <button onClick={() => editarMateria(m)} className="text-blue-600 hover:underline text-sm">
                     Editar
                   </button>
