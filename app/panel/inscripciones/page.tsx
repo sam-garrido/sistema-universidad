@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
 const DATOS_BANCARIOS = {
-  banco: 'Banco de Ejemplo',
-  titular: 'Universidad Ejemplo A.C.',
+  banco: 'Banco Santander',
+  titular: 'Instituto Superior Benito Juarez',
   cuenta: '0123456789',
   clabe: '012180001234567895',
 }
@@ -95,9 +95,11 @@ export default function InscripcionesPage() {
     const folio = `INS-${alumno.matricula}-${Date.now()}`
     const siguienteSemestre = (alumno.semestre || 1) + 1
 
+        const { data: cicloData } = await supabase.rpc('ciclo_escolar_actual')
+
     const { error } = await supabase.from('inscripciones').insert({
       alumno_id: user.id,
-      ciclo_escolar: '2026-2027 B',
+      ciclo_escolar: cicloData,
       semestre: siguienteSemestre,
       estatus: 'pendiente',
       folio,

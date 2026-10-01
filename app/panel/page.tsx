@@ -40,12 +40,12 @@ export default function PanelPage() {
 
   if (loading) return <p className="p-8">Cargando...</p>
 
-  const accesos = [
-    { nombre: 'Horario de Clases', href: '/panel/horario', color: 'text-green-600' },
-    { nombre: 'Calificaciones', href: '/panel/calificaciones', color: 'text-red-500' },
-    { nombre: 'Pagos', href: '/panel/pagos', color: 'text-orange-500' },
-    { nombre: 'Inscripciones', href: '/panel/inscripciones', color: 'text-purple-600' },
-    { nombre: 'Recursos Bibliográficos', href: '/panel/recursos', color: 'text-blue-600' },
+    const accesos = [
+    { nombre: 'Horario de Clases', href: '/panel/horario', borde: 'border-green-500' },
+    { nombre: 'Calificaciones', href: '/panel/calificaciones', borde: 'border-red-500' },
+    { nombre: 'Pagos', href: '/panel/pagos', borde: 'border-orange-500' },
+    { nombre: 'Inscripciones', href: '/panel/inscripciones', borde: 'border-purple-500' },
+    { nombre: 'Recursos Bibliográficos', href: '/panel/recursos', borde: 'border-blue-500' },
   ]
 
   return (
@@ -65,14 +65,14 @@ export default function PanelPage() {
         </div>
       </header>
 
-      <nav className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 p-4 sm:p-8">
+            <nav className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 p-4 sm:p-8">
         {accesos.map((a) => (
           <Link
             key={a.href}
             href={a.href}
-            className="bg-white rounded-lg shadow p-6 text-center hover:shadow-md transition"
+            className={`bg-white rounded-lg shadow p-6 text-center hover:shadow-md transition border-t-4 ${a.borde}`}
           >
-            <p className={`font-semibold ${a.color}`}>{a.nombre}</p>
+            <p className="font-semibold text-gray-800">{a.nombre}</p>
           </Link>
         ))}
       </nav>
